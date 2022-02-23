@@ -1,19 +1,16 @@
+import { PAGE_URL } from "../testdata/cyber_attack_statistics_testdata";
+
 export default class Page {
 
-    open_depop() {
+    open_cyber_attack_statistics() {
         browser.maximizeWindow();
-        return browser.url('https://www.depop.com/');
+        return browser.url(PAGE_URL);
     }
 
     reload_browser () {
         console.log("Reload session of browser");
         browser.reload();
       }
-
-     open(link) {
-        browser.maximizeWindow();
-        return browser.url(link);
-    }
 
     wait_page_upload(){
         browser.waitUntil(
