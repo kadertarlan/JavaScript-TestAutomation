@@ -185,29 +185,27 @@ class MainPage extends Page {
 
                 var check_complexity =first_element_complextiy - second_element_omplexity; // for same complexty low-low, high-high, medium-medum difference should be 0, low-high, low-medium etc. difference >0, if difference <0 thats meaning sorting is  not true
                 
-                expect(check_complexity).toBeGreaterThanOrEqual(0, { message: 'Complexity sorting is not true', }); //colon with sort() and already created colon on UI should same if sorted is
+                expect(check_complexity).toBeGreaterThanOrEqual(0, { message: 'Complexity sorting is not working', }); //colon with sort() and already created colon on UI should same if sorted is
             });
    }
 
-   async check_sorting_of_string_or_number(sorted_colon_elements) {
+   async check_sorting_of_string_or_number(sorted_colon_element_list) {
 
-        expect(sorted_colon_datas.sort()).toEqual(sorted_colon_datas); //colon with sort() and already created colon on UI should same if sorted is
+        expect(sorted_colon_element_list.sort()).toEqual(sorted_colon_element_list, { message: 'String and number sorting is not working for name and number of cases .', }); //colon with sort() and already created colon on UI should same if sorted is
    }   
 
-    async check_sorting_of_number_of_cases(sorted_colon_elements) {
+    async check_sorting_of_number_of_cases(sorted_colon_element_list) {
     
         let list = [];
-        sorted_colon_elements.forEach((element, index, arr) => {
+        sorted_colon_element_list.forEach((element, index, arr) => {
 
             const num = unabbreviateNumber(element.getText());
 
             list[index] = num;
         });
 
-        expect(list.sort()).toEqual(list);
+        expect(list.sort()).toEqual(list, { message: 'Sorting is not working for number of cases', });
   } 
-
-  
 }
 
 
