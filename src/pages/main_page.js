@@ -65,6 +65,7 @@ class MainPage extends Page {
         console.log("Checking filtering functionality with invalid data");
     }
 
+
     async check_filtering_functionality_with_valid_data() {
 
         await browser.waitUntil(
@@ -92,11 +93,10 @@ class MainPage extends Page {
        //check returned table rows, get row text after filtering,  should have filtering text
        const rows = await $$(function() { 
         return this.document.querySelectorAll(this.get_table_row_elements);
-    });
-    rows.forEach((element) => {
-         expect(element.getText()).toHaveTextContaining(textToBeUsedForFilter);
-     });
-
+       });
+        rows.forEach((element) => {
+            expect(element.getText()).toHaveTextContaining(textToBeUsedForFilter);
+        });
     }
 
 
@@ -128,42 +128,57 @@ class MainPage extends Page {
             return this.document.querySelectorAll("div.header__item"); 
         });
 
-        
-        //find out which column is affected by sort.
+        const table_rows = await $$(function() { 
+            return this.document.querySelectorAll("div.table-row"); 
+        });
+
+
+        let sorted_colon_element_list = await [];
+        let sorted_colon_index= -1;
+
+        //find out which column is affected by sort and add this colon elements to list
         for (var i = 0; i < header_colon_items.length; i++) {
             const lower_case_header_name = (await header_colon_items[i].getText()).toLowerCase();
             if(await lower_case_header_name.includes(selected_sort_value)){
-                 await this.check_order_of_table_values_according_to_rules(i);
+                sorted_colon_index = i;
+                break;
             }
         }
+        for (var i = 0; i < table_rows.length; i++) {
+            const sorted_element ="div.table-content > div.table-row:nth-child("+i+") > div.table-data:nth-child("+sorted_colon_index+")";
+            const sorted_element_value =  await $(function() { return this.document.querySelector(this.sorted_element);});
+            await sorted_colon_element_list.push(sorted_element_value); 
+        }
+
+        await this.check_order_of_table_values_according_to_rules(sorted_colon_element_list);
+
     } 
 
-    async check_order_of_table_values_according_to_rules(selected_sort_value, colon_index) {
+    async check_order_of_table_values_according_to_rules(sorted_colon_element_list) {
 
-        const  selected_colon ="div.table-content > div:nth-child("+colon_index+") > div.table-data";
-
-        const sorted_colon_elements =  await $$(function() { 
-            return this.document.querySelectorAll(this.selected_colon); 
+        let sorted_colon_value_list= [];
+        sorted_colon_element_list.forEach((element) => {
+             sorted_colon_value_list.push( element.getText());
         });
 
-        switch(this.sorted_colon_elements) {
+        switch(sorted_colon_value_list) {
 
-            case this.sorted_colon_elements.find(e => e.endsWith("K|k|m|M|b|B") && e.startsWith("1|2|3|4|5|6|7|8|9|0")):
-               check_sorting_of_number_of_cases(this.sorted_colon_elements);
-               break;
-            case this.sorted_colon_elements.find(e => e.includes("low|medium|high")):
-                check_sorting_of_complexity(this.sorted_colon_elements);
+            case sorted_colon_element_list.includes('low'|'medium'|'high'):
+                this.check_sorting_of_complexity(sorted_colon_element_list);
+                break;
+            case sorted_colon_value_list.includes('K'|'k'|'m'|'M'|'b'|'B') && sorted_colon_value_list.includes('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'):
+                this.check_sorting_of_number_of_cases(this.sorted_colon_element_list);
                 break;
             default:
-                check_sorting_of_string_or_number(this.sorted_colon_elements);
+                this.check_sorting_of_string_or_number(sorted_colon_element_list);
           }
     }
 
-    async check_sorting_of_complexity(sorted_colon_elements) {
+    async check_sorting_of_complexity(sorted_colon_element_list) {
     
 
            var complexityArray = ["low" , "medium", "high"]
-           sorted_colon_elements.forEach((element, index, arr) => {
+           sorted_colon_element_list.forEach((element, index, arr) => {
 
                 var first_element_complextiy = complexityArray.indexOf(element.getText()) ;
                 var second_element_omplexity = complexityArray.indexOf(arr[index+1].getText())
@@ -191,6 +206,8 @@ class MainPage extends Page {
 
         expect(list.sort()).toEqual(list);
   } 
+
+  
 }
 
 
