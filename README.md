@@ -20,6 +20,9 @@ This project was developed with JavaScript and Mocha and WebdriverIO (https://we
 ## Installation
 ### 1. Open terminal
 ### 2.  Install Node.js (check if you have it via node -v in a command prompt)
+
+*Download the Node.js source code  : https://nodejs.org/en/download/  *
+
 >sudo npm install -g npm
 > 
 >node -v
@@ -40,7 +43,8 @@ This project was developed with JavaScript and Mocha and WebdriverIO (https://we
 #####Test cases:
 - Verify Cyber attack statistics filtering feature - without result
 - Verify Cyber attack statistics filtering feature - with result
-- Verify Cyber attack statistics sorting feature
+- Verify Cyber attack statistics sorting feature - With NAME, NUMBER OF CASES, AVERAGE IMPACT SCORE, COMPLEXITY
+
 
 ### Tests path:
         /JavaScript-TestAutomation/src/specs/cyber_attack_statistics_test.js
