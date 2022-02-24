@@ -1,5 +1,6 @@
 import test_data from '../testdata/cyber_attack_statistics_testdata';
 import Page from './page';
+import { unabbreviateNumber } from "js-abbreviation-number";
 
 class MainPage extends Page {
 
@@ -135,20 +136,61 @@ class MainPage extends Page {
                  await this.check_order_of_table_values_according_to_rules(i);
             }
         }
+    } 
 
-    }   
-
-    async check_order_of_table_values_according_to_rules(colon_index) {
+    async check_order_of_table_values_according_to_rules(selected_sort_value, colon_index) {
 
         const  selected_colon ="div.table-content > div:nth-child("+colon_index+") > div.table-data";
 
-        const sorted_colon_datas =  await $$(function() { 
+        const sorted_colon_elements =  await $$(function() { 
             return this.document.querySelectorAll(this.selected_colon); 
         });
 
-        expect(sorted_colon_datas.sort()).toEqual(sorted_colon_datas); //colon with sort() and already created colon on UI should same if sorted is
+        switch(this.sorted_colon_elements) {
 
+            case this.sorted_colon_elements.find(e => e.endsWith("K|k|m|M|b|B") && e.startsWith("1|2|3|4|5|6|7|8|9|0")):
+               check_sorting_of_number_of_cases(this.sorted_colon_elements);
+               break;
+            case this.sorted_colon_elements.find(e => e.includes("low|medium|high")):
+                check_sorting_of_complexity(this.sorted_colon_elements);
+                break;
+            default:
+                check_sorting_of_string_or_number(this.sorted_colon_elements);
+          }
     }
+
+    async check_sorting_of_complexity(sorted_colon_elements) {
+    
+
+           var complexityArray = ["low" , "medium", "high"]
+           sorted_colon_elements.forEach((element, index, arr) => {
+
+                var first_element_complextiy = complexityArray.indexOf(element.getText()) ;
+                var second_element_omplexity = complexityArray.indexOf(arr[index+1].getText())
+
+                var check_complexity =first_element_complextiy - second_element_omplexity; // for same complexty low-low, high-high, medium-medum difference should be 0, low-high, low-medium etc. difference >0, if difference <0 thats meaning sorting is  not true
+                
+                expect(check_complexity).toBeGreaterThanOrEqual(0, { message: 'Complexity sorting is not true', }); //colon with sort() and already created colon on UI should same if sorted is
+            });
+   }
+
+   async check_sorting_of_string_or_number(sorted_colon_elements) {
+
+        expect(sorted_colon_datas.sort()).toEqual(sorted_colon_datas); //colon with sort() and already created colon on UI should same if sorted is
+   }   
+
+    async check_sorting_of_number_of_cases(sorted_colon_elements) {
+    
+        let list = [];
+        sorted_colon_elements.forEach((element, index, arr) => {
+
+            const num = unabbreviateNumber(element.getText());
+
+            list[index] = num;
+        });
+
+        expect(list.sort()).toEqual(list);
+  } 
 }
 
 
