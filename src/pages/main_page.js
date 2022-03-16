@@ -58,6 +58,7 @@ class MainPage extends Page {
        const table_rows = await $$(function() { 
            return this.document.querySelectorAll(this.get_table_row_elements);
        });
+
        await browser.pause(2000)// just to see what's happening on the screen
 
         expect(table_rows.length).toBe(0, { message: "Table of statistics is not empty after invalid filtering."});
@@ -106,10 +107,13 @@ class MainPage extends Page {
             return this.document.querySelectorAll("#sort-select > option"); 
         });
 
+        let sorting_check = await [];
+
         //try all the options that received (in sort_options) one by one.
         for (var i = 0; i < sort_options.length; i++) {
             this.reload_browser();
             const selected_sort_value = await sort_options[i].getValue();
+            const selected_sort_text = await sort_options[i].getText();
 
             await this.sort_select.selectByAttribute('value', await selected_sort_value);
 
@@ -117,8 +121,10 @@ class MainPage extends Page {
 
             console.log(await selected_sort_value + ": Selected for sorting"); 
 
-            await this.check_sorting_is_true(selected_sort_value);
+            await sorting_check.push(await this.check_sorting_is_true(selected_sort_text));
         }
+
+        return sorting_check;
     }
 
     async check_sorting_is_true(selected_sort_value) {
@@ -139,59 +145,65 @@ class MainPage extends Page {
         //find out which column is affected by sort and add this colon elements to list
         for (var i = 0; i < header_colon_items.length; i++) {
             const lower_case_header_name = (await header_colon_items[i].getText()).toLowerCase();
-            if(await lower_case_header_name.includes(selected_sort_value)){
+            if(await lower_case_header_name.includes(selected_sort_value.toLowerCase())){
                 sorted_colon_index = i;
                 break;
             }
         }
         for (var i = 0; i < table_rows.length; i++) {
-            const sorted_element ="div.table-content > div.table-row:nth-child("+i+") > div.table-data:nth-child("+sorted_colon_index+")";
-            const sorted_element_value =  await $(function() { return this.document.querySelector(this.sorted_element);});
+            
+            let sorted_element_value = await $$(function() { 
+                return this.document.querySelectorAll("div.table-row"); 
+            })[i].$$("div.table-data")[sorted_colon_index].getText();
+
             await sorted_colon_element_list.push(sorted_element_value); 
+
         }
 
-        await this.check_order_of_table_values_according_to_rules(sorted_colon_element_list);
+        return await this.check_order_of_table_values_according_to_rules(sorted_colon_element_list);
 
     } 
 
     async check_order_of_table_values_according_to_rules(sorted_colon_element_list) {
 
-        let sorted_colon_value_list= [];
-        sorted_colon_element_list.forEach((element) => {
-             sorted_colon_value_list.push( element.getText());
-        });
+        switch(true) {
 
-        switch(sorted_colon_value_list) {
-
-            case sorted_colon_element_list.includes('low'|'medium'|'high'):
-                this.check_sorting_of_complexity(sorted_colon_element_list);
-                break;
-            case sorted_colon_value_list.includes('K'|'k'|'m'|'M'|'b'|'B') && sorted_colon_value_list.includes('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'):
-                this.check_sorting_of_number_of_cases(this.sorted_colon_element_list);
-                break;
+            case sorted_colon_element_list.includes('low','medium','high'):
+                return this.check_sorting_of_complexity(sorted_colon_element_list);
+            case sorted_colon_element_list.includes('K','k','m','M','b','B') && sorted_colon_element_list.includes('1','2','3','4','5','6','7','8','9','0'):
+                return this.check_sorting_of_number_of_cases(this.sorted_colon_element_list);
             default:
-                this.check_sorting_of_string_or_number(sorted_colon_element_list);
+                return this.check_sorting_of_string_or_number(sorted_colon_element_list);
           }
     }
 
     async check_sorting_of_complexity(sorted_colon_element_list) {
     
 
-           var complexityArray = ["low" , "medium", "high"]
+           const complexityArray = ["low" , "medium", "high"]
+           let complexity_check = true;
+
            sorted_colon_element_list.forEach((element, index, arr) => {
 
-                var first_element_complextiy = complexityArray.indexOf(element.getText()) ;
-                var second_element_omplexity = complexityArray.indexOf(arr[index+1].getText())
+            if(index+1 < arr.length){
+                const first_element_complextiy = complexityArray.indexOf(element); 
+                const second_element_omplexity = complexityArray.indexOf(arr[index+1]);
 
-                var check_complexity =first_element_complextiy - second_element_omplexity; // for same complexty low-low, high-high, medium-medum difference should be 0, low-high, low-medium etc. difference >0, if difference <0 thats meaning sorting is  not true
+                const check_complexity =  second_element_omplexity - first_element_complextiy; // for same complexty low-low, high-high, medium-medum difference should be 0, low-high, low-medium etc. difference >0, if difference <0 thats meaning sorting is  not true
                 
-                expect(check_complexity).toBeGreaterThanOrEqual(0, { message: 'Complexity sorting is not working', }); //colon with sort() and already created colon on UI should same if sorted is
-            });
+                if(check_complexity<0)
+                   complexity_check = false;
+            }
+           });
+           return complexity_check;
    }
 
    async check_sorting_of_string_or_number(sorted_colon_element_list) {
 
-        expect(sorted_colon_element_list.sort()).toEqual(sorted_colon_element_list, { message: 'String and number sorting is not working for name and number of cases .', }); //colon with sort() and already created colon on UI should same if sorted is
+        if(sorted_colon_element_list.sort() == sorted_colon_element_list){
+            return true;
+        }else
+            return false;
    }   
 
     async check_sorting_of_number_of_cases(sorted_colon_element_list) {
@@ -204,9 +216,21 @@ class MainPage extends Page {
             list[index] = num;
         });
 
-        expect(list.sort()).toEqual(list, { message: 'Sorting is not working for number of cases', });
+        if(list.sort().toEqual){
+            return true;
+        }else
+            return false;
   } 
+
+    async assert(condition, message) {
+        if (!condition) {
+            try {
+                throw new Error(message);
+            } catch(e) {
+                return console.error(e);
+            
+            }
+        }
 }
-
-
+} 
  export default new MainPage();

@@ -45,6 +45,10 @@ This project was developed with JavaScript and Mocha and WebdriverIO (https://we
 - Verify Cyber attack statistics filtering feature - with result
 - Verify Cyber attack statistics sorting feature - With NAME, NUMBER OF CASES, AVERAGE IMPACT SCORE, COMPLEXITY
 
+* Sorting works only in one direction: from low to high, from A to Z, sorting by complexity sorts from low to high
+* Filtering: Number of cases uses special formatting, thousands might be expressed as letter "k" (5000 = 5k), millions as M (1200000 = 1.2M), billions as "B" (1580000000 = 1.58B)
+* Solution will work if we add another column between a name and number of cases
+
 
 ### Tests path:
         /JavaScript-TestAutomation/src/specs/cyber_attack_statistics_test.js

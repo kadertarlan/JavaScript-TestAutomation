@@ -16,7 +16,7 @@ describe('Check Cyber attack statistics', () => {
            await MainPage.check_filtering_functionality_with_invalid_data();   
 
 
-      });
+      }); 
   });
 
   describe('Verify Cyber attack statistics filtering feature - with result', () => {
@@ -36,8 +36,11 @@ describe('Check Cyber attack statistics', () => {
 
         await MainPage.check_cyber_attack_statistics_page_is_visible();
 
-        await MainPage.check_sorting_functionality_with_different_sort_data();   
+        const isSorting = await MainPage.check_sorting_functionality_with_different_sort_data();  
 
+        isSorting.forEach(
+            sort_check => { 
+                expect(sort_check).toBe(true,'Sorting is not working properly');})       
     });
 });
 
